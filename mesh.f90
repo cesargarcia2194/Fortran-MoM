@@ -8,7 +8,7 @@
 MODULE mesh
 	IMPLICIT NONE
 
-
+	integer k=2
 	TYPE nodo
 		real(KIND=dp), DIMENSION(3)::rp !posilbe vector de ubicacion de nodo
 		integer:: parent_index 
@@ -37,7 +37,8 @@ MODULE mesh
     	end if
 
     	iovar=0
-
+    	!Este comentario es para probar git hub
+    	!Este es un segundo comentario
     	do while (iovar==0)
     		read(fid,*,IOSTAT=iovar) linea
     		if(linea=='$Elements') then
