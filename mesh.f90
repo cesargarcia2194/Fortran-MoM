@@ -112,7 +112,7 @@ Contains
     			allocate(mesh%nodos(nnodos)) !crear nodos
     			n=0
     			do n=1, nnodos
-    		READ(fid,*,IOSTAT=iovar) numero_nodo, np(1:3)
+    				READ(fid,*,IOSTAT=iovar) numero_nodo, np(1:3)
     				mesh%nodos(n)%rp=np
     			end do
     			mesh%nnodos=nnodos
