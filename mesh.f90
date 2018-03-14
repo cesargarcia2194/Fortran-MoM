@@ -31,11 +31,11 @@ MODULE mesh
 		integer, DIMENSION(2):: indice_nodos
 	END TYPE lineas
 
-	TYPE solidos
-		integer:: id
-		integer, DIMENSION(4):: indice_nodos
-		INTEGER, DIMENSION(4) :: indices_cara_solido
-	END TYPE solidos
+  TYPE solidos
+    integer:: id
+    integer, DIMENSION(4):: indice_nodos
+    INTEGER, DIMENSION(4) :: indices_cara_solido
+  END TYPE solidos
 
   TYPE cara_solido
      INTEGER, DIMENSION(3) :: indices_nodo
@@ -48,7 +48,7 @@ MODULE mesh
 		type(nodo), DIMENSION(:),allocatable :: nodos 
 		type(parchest), DIMENSION(:), allocatable ::parchest
 		type(lineas), DIMENSION(:), allocatable ::lineas
-		type(solidos), DIMENSION(:), allocatable ::solidos
+    type(solidos), DIMENSION(:), allocatable ::solidos
 		TYPE(cara_solido), DIMENSION(:), ALLOCATABLE :: caras_solidos
 		integer ::nnodos
 		integer ::nparchest
@@ -251,8 +251,6 @@ SUBROUTINE hacer_caras_solidos(mesh)
 
     ccara = 0
 
-    indices_nodo
-     indices_solido, indices_bnodo
     ! Create unique faces.
     DO n=1,SIZE(mesh%solidos)
        DO m=1,4
