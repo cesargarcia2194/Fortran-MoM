@@ -6,6 +6,7 @@
 ! Contains also functions for splitting a mesh into submeshes and various mesh manipulation routines
 !
 MODULE mesh
+	
 	IMPLICIT NONE
 
 	
@@ -27,20 +28,64 @@ MODULE mesh
 	TYPE solidos
 		integer:: id
 		integer, DIMENSION(4):: indice_nodos
+		INTEGER, DIMENSION(4) :: indices_cara_solido
 	END TYPE solidos
+
+	TYPE cara_solido
+     INTEGER, DIMENSION(3) :: indices_nodo
+     INTEGER, DIMENSION(2) :: indices_solido, indices_bnodo
+     INTEGER :: indece_cara ! -1 if not a boundary
+     REAL (KIND=dp) :: area
+  	END TYPE cara_solido
 
 	TYPE contenido_mesh
 		type(nodo), DIMENSION(:),allocatable :: nodos 
 		type(parchest), DIMENSION(:), allocatable ::parchest
 		type(lineas), DIMENSION(:), allocatable ::lineas
 		type(solidos), DIMENSION(:), allocatable ::solidos
+		TYPE(cara_solido), DIMENSION(:), ALLOCATABLE :: caras_solidos
 		integer ::nnodos
 		integer ::nparchest
 		integer ::nlineas
-		integer ::nsolidos 
+		integer ::nsolidos
+		integer:: ncaras_solido 
 	END TYPE contenido_mesh
 
 Contains
+	!Si n>4 regresa 1, sino n
+  	FUNCTION indexrot4(n) RESULT(res)
+    	INTEGER, INTENT(IN) :: n
+    	INTEGER :: res
+	
+    	res = n
+	
+    	IF(res>4) THEN
+    	   res = res - ((res-1)/4)*4
+    	END IF
+END FUNCTION indexrot4
+	!Si los valores triplet 1 estan en triplet 2 devuel TRUE (no importa el orden)
+	FUNCTION cmp_triplets(triplet1, triplet2) RESULT(res)
+	    INTEGER, DIMENSION(3), INTENT(IN) :: triplet1, triplet2
+	    LOGICAL :: res
+	    ! Revisar esta declaracion y como es la matriz de verdad
+	    INTEGER, PARAMETER, DIMENSION(3,6) :: indices = reshape((/1,2,3, 1,3,2, 2,1,3, 2,3,1, 3,1,2, 3,2,1/),(/3,6/))
+	    !1 1 2 2 3 3
+	    !2 3 1 3 1 2
+	    !3 2 3 1 2 1
+	    INTEGER :: i
+	
+	    res = .FALSE.
+	
+	    DO i=1,6
+	       IF(triplet1(1)==triplet2(indices(1,i)) .AND.&
+	            triplet1(2)==triplet2(indices(2,i)) .AND.&
+	            triplet1(3)==triplet2(indices(3,i))) THEN
+	          res = .TRUE.
+	          RETURN
+	       END IF
+	    END DO
+END FUNCTION cmp_triplets
+
 	FUNCTION cargar_mesh(archivoMesh) RESULT(mesh)
 		character(LEN=*),INTENT(IN):: archivoMesh
 		character(LEN=256):: linea
@@ -176,4 +221,108 @@ Contains
     	CLOSE(fid)
     	!CERRAR ARCHIVO
 END FUNCTION cargar_mesh
+<<<<<<< HEAD
 END MODULE mesh
+=======
+!--------------------------------------------------------------------
+SUBROUTINE hacer_caras_solidos(mesh)
+    TYPE(contenido_mesh), INTENT(INOUT) :: mesh
+    INTEGER :: n, m, l, ccara, ncaras, nbnds
+    TYPE(cara_solido), DIMENSION(:), ALLOCATABLE :: tmpcaras
+    LOGICAL:: si_cara
+    INTEGER, DIMENSION(3):: triplet
+
+    ! Allocate face reservoir with upper bound size.
+    ncaras = SIZE(mesh%solidos)*4
+    ALLOCATE(tmpcaras(1:ncaras))
+
+    ! Declare node indices with undefined values.
+    DO n=1,ncaras
+       tmpcaras(n)%indices_nodo(:) = -1
+       tmpcaras(n)%indices_bnodo(:) = -1
+       tmpcaras(n)%indices_solido(:) = -1
+    END DO
+
+    ccara = 0
+
+    indices_nodo
+     indices_solido, indices_bnodo
+    ! Create unique faces.
+    DO n=1,SIZE(mesh%solidos)
+       DO m=1,4
+
+          ! This determined the face node indexing.
+          triplet = (/mesh%solidos(n)%indice_nodos(m),&
+               mesh%solidos(n)%indice_nodos(indexrot4(m+1)),&
+               mesh%solidos(n)%indice_nodos(indexrot4(m+2))/)
+
+          ! Check if this face already exists in the list.
+          si_cara = .FALSE.
+          DO l=1,ccara
+             IF(cmp_triplets(tmpcaras(l)%indices_nodo, triplet)) THEN
+                si_cara = .TRUE.
+
+                ! Add this face index to edge's face list and the second one.
+                ! If an edge is shared by more than two faces, only two connections
+                ! are recorded.
+                tmpcaras(l)%indices_solido(2) = n
+                tmpcaras(l)%indices_bnodo(2) = mesh%solidos(n)%indices_nodo(indexrot4(m+3))
+
+                ! Add this face index to tetrahedra's face list.
+                mesh%solidos(n)%indices_cara_solido(m) = l
+
+                EXIT
+             END IF
+          END DO
+
+          IF(si_cara.eqv..FALSE.)THEN
+             ! Add new face.
+             ccara = ccara + 1
+             tmpcaras(ccara)%indices_nodo = triplet
+
+             ! Add this face index to edge's face list as the first one.
+             tmpcaras(ccara)%indices_solido(1) = n
+             tmpcaras(ccara)%indices_bnodo(1) = mesh%solidos(n)%indices_nodo(indexrot4(m+3))
+
+             ! Add this face index to tetrahedra's face list.
+             mesh%solidos(n)%indices_cara_solido(m) = ccara
+          END IF
+       END DO
+    END DO
+
+    ! Trim face arrays.
+    mesh%ncaras_solido = ccara
+    ALLOCATE(mesh%caras_solidos(1:ccara))
+    DO n=1,ccara
+       mesh%caras_solidos(n)%indices_nodo(:) = tmpcaras(n)%indices_nodo(:)
+       mesh%caras_solidos(n)%indices_bnodo(:) = tmpcaras(n)%indices_bnodo(:)
+       mesh%caras_solidos(n)%indices_solido(:) = tmpcaras(n)%indices_solido(:)
+       mesh%caras_solidos(n)%indece_cara = -1
+    END DO
+
+    ! Deallocate temporary arrays.
+    DEALLOCATE(tmpcaras)
+
+    ! Connect boundary solid faces to surface faces.
+    DO n=1,mesh%ncaras_solido
+       IF(mesh%caras_solidos(n)%indices_solido(1)==-1 .OR.&
+            mesh%solid_faces(n)%indices_solido(2)==-1) THEN
+          DO m=1,mesh%ncaras
+             IF(cmp_triplets(mesh%caras_solidos(n)%indices_nodo, mesh%parchest(m)%indice_nodos)) THEN
+                mesh%caras_solidos(n)%indece_cara = m
+                EXIT
+             END IF
+          END DO
+
+          IF(mesh%caras_solidos(n)%indece_cara==-1) THEN
+             WRITE(*,*) 'Could not connect solid boundary face to surface face!'
+             STOP
+          END IF
+       END IF
+    END DO
+
+    WRITE(*,'(A,I0,:,A)') ' - Created ', ccara, ' unique solid faces'
+
+END SUBROUTINE hacer_caras_solidos
+END MODULE mesh
+>>>>>>> e0919767f8aaffd36b66503e9abd1cef6bc04e75
