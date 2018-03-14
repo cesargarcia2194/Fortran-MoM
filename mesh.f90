@@ -15,10 +15,16 @@ MODULE mesh
 		 
 	END TYPE nodo
 
-	TYPE parchest
-		integer:: id
-		integer, DIMENSION(3):: indice_nodos
-	END TYPE parchest
+  TYPE parchest
+    integer:: id
+    integer, DIMENSION(3):: indice_nodos, indice_ladoscomunes
+    ! los que agregue
+    real,  DIMENSION(3) :: normal, baricentro ! normal: vector normal
+    ! ladoscomunes: vectores directores de los lados comunes
+    ! normal_ladoscomunes: vecor normal a los lados comunes
+    real, DIMENSION(3,3) :: ladoscomunes, normal_ladoscomunes
+    real :: area, pd !! no se que era pd, pero es dot(normal,p1)
+  END TYPE parchest
 
 	TYPE lineas 
 		integer:: id
@@ -31,12 +37,12 @@ MODULE mesh
 		INTEGER, DIMENSION(4) :: indices_cara_solido
 	END TYPE solidos
 
-	TYPE cara_solido
+  TYPE cara_solido
      INTEGER, DIMENSION(3) :: indices_nodo
      INTEGER, DIMENSION(2) :: indices_solido, indices_bnodo
      INTEGER :: indece_cara ! -1 if not a boundary
      REAL (KIND=dp) :: area
-  	END TYPE cara_solido
+  END TYPE cara_solido
 
 	TYPE contenido_mesh
 		type(nodo), DIMENSION(:),allocatable :: nodos 
@@ -221,9 +227,9 @@ END FUNCTION cmp_triplets
     	CLOSE(fid)
     	!CERRAR ARCHIVO
 END FUNCTION cargar_mesh
-<<<<<<< HEAD
-END MODULE mesh
-=======
+
+
+
 !--------------------------------------------------------------------
 SUBROUTINE hacer_caras_solidos(mesh)
     TYPE(contenido_mesh), INTENT(INOUT) :: mesh
@@ -325,4 +331,3 @@ SUBROUTINE hacer_caras_solidos(mesh)
 
 END SUBROUTINE hacer_caras_solidos
 END MODULE mesh
->>>>>>> e0919767f8aaffd36b66503e9abd1cef6bc04e75
