@@ -11,7 +11,7 @@ MODULE mesh
 
 	
 	TYPE nodo
-		integer, numero_nodo
+		integer::numero_nodo
 		real(KIND=8), DIMENSION(3)::rp !posilbe vector de ubicacion de nodo
 		 
 	END TYPE nodo
@@ -31,11 +31,22 @@ MODULE mesh
 		integer, DIMENSION(2):: indice_nodos
 	END TYPE lineas
 
-  	TYPE solidos
-  	  integer:: id
-  	  integer, DIMENSION(4):: indice_nodos
-  	  INTEGER, DIMENSION(4) :: indices_cara_solido
-  	END TYPE solidos
+  !! Lados comunes entre las caras
+  TYPE lado
+     integer,DIMENSION(2)::indices_nodo, indices_cara
+ 	 real::longitud
+
+ 	!INTEGER :: bnd
+    !INTEGER :: parent_index
+    !INTEGER :: couple_index
+    !INTEGER, DIMENSION(:,:), ALLOCATABLE :: child_indices !
+  END TYPE lado
+
+  TYPE solidos
+    integer:: id
+    integer, DIMENSION(4):: indice_nodos
+    INTEGER, DIMENSION(4) :: indices_cara_solido
+  END TYPE solidos
 
 
 	TYPE cara_solido
@@ -49,14 +60,17 @@ MODULE mesh
 		type(nodo), DIMENSION(:),allocatable :: nodos 
 		type(cara), DIMENSION(:), allocatable ::caras
 		type(lineas), DIMENSION(:), allocatable ::lineas
+    	type(lado), DIMENSION(:), ALLOCATABLE :: lados
     	type(solidos), DIMENSION(:), allocatable ::solidos
 		TYPE(cara_solido), DIMENSION(:), ALLOCATABLE :: caras_solidos
 		integer ::nnodos
 		integer ::ncaras
+		integer ::nlados
 		integer ::nlineas
 		integer ::nsolidos
-		integer:: ncaras_solido 
-	END TYPE contenido_mesh
+		integer:: ncaras_solido
+    integer :: nladolados_comunes
+  END TYPE contenido_mesh
 
 Contains
 	!Si n>4 regresa 1, sino n
@@ -70,8 +84,18 @@ Contains
     	   res = res - ((res-1)/4)*4
     	END IF
 END FUNCTION indexrot4
+	FUNCTION indexrot3(n) RESULT(res)
+    	INTEGER, INTENT(IN) :: n
+    	INTEGER :: res
+	
+    	res = n
+	
+    	IF(res>3) THEN
+    	   res = res - ((res-1)/3)*3
+    	END IF
+END FUNCTION indexrot3
 	!Si los valores triplet 1 estan en triplet 2 devuel TRUE (no importa el orden)
-	FUNCTION cmp_triplets(triplet1, triplet2) RESULT(res)
+	FUNCTION comp_trio(triplet1, triplet2) RESULT(res)
 	    INTEGER, DIMENSION(3), INTENT(IN) :: triplet1, triplet2
 	    LOGICAL :: res
 	    ! Revisar esta declaracion y como es la matriz de verdad
@@ -91,8 +115,46 @@ END FUNCTION indexrot4
 	          RETURN
 	       END IF
 	    END DO
-END FUNCTION cmp_triplets
+END FUNCTION comp_trio
 
+	FUNCTION comp_par(par1, par2)RESULT(res)
+
+		integer,DIMENSION(2), INTENT(IN)::par1, par2
+		logical :: res
+		res= .FALSE.
+		if( (par1(1)==par2(1) .AND. par1(2) == par2(2)) .OR.&
+			(par1(1)==par2(2) .AND. par1(2) == par2(1)))then
+			res= .TRUE.
+		end if
+END FUNCTION comp_par
+
+	function prod_cruz3(v1,v2) RESULT(v1xv2)
+		real(KIND=8),DIMENSION(3),INTENT(IN)::v1
+		real(KIND=8),DIMENSION(3),INTENT(IN)::v2
+		real(KIND=8),DIMENSION(3)::v1xv2
+
+		v1xv2(1)=v1(2)*v2(3)-v2(2)*v1(3)
+		v1xv2(2)=v2(1)*v1(3)-v1(1)*v2(3)
+		v1xv2(3)=v1(1)*v2(2)-v2(1)-v1(2)
+	end function prod_cruz3
+
+	function norma_vector3(v)RESULT(res)
+		real(KIND=8),DIMENSION(3),INTENT(IN)::v
+		real(KIND=8)::res
+		res=SQRT(v(1)**2 +v(2)**2 +v(3)**2)
+	end function norma_vector3
+
+	function hace_vertor3(v1,v2)RESULT(v)
+		real(KIND=8),DIMENSION(3),INTENT(IN)::v1
+		real(KIND=8),DIMENSION(3),INTENT(IN)::v2
+		real(KIND=8),DIMENSION(3)::v
+		v(1)=v2(1)-v1(1)
+		v(2)=v2(2)-v1(2)
+		v(3)=v2(3)-v1(3)
+	end function hace_vertor3
+
+
+!construyendo contenedor mesh
 	FUNCTION cargar_mesh(archivoMesh) RESULT(mesh)
 		character(LEN=*),INTENT(IN):: archivoMesh
 		character(LEN=256):: linea
@@ -232,84 +294,108 @@ END FUNCTION cargar_mesh
 
 
 
-	function prod_cruz3(v1,v2) RESULT(v1xv2)
-		real(KIND=8),DIMENSION(3),INTENT(IN)::v1
-		real(KIND=8),DIMENSION(3),INTENT(IN)::v2
-		real(KIND=8),DIMENSION(3)::v1xv2
+	
 
-		v1xv2(1)=v1(2)*v2(3)-v2(2)*v1(3)
-		v1xv2(2)=v2(1)*v1(3)-v1(1)*v2(3)
-		v1xv2(3)=v1(1)*v2(2)-v2(1)-v1(2)
-	end function prod_cruz3
+	!SUBROUTINE hacer_caras(mesh)
+!
+!
+	!	type(contenido_mesh),INTENT(INOUT):: mesh
+	!	integer:: n
+	!	real::area
+!
+	!	real(KIND=8),DIMENSION(3)::e1, e2, e3, normal, normalu
+!
+!
+	!	DO n=1,mesh%ncaras
+!
+	!		e1=hace_vertor3(mesh%nodos%(mesh%caras(n)%indice_nodos(1))%rp, mesh%nodos%(mesh%caras(n)%indice_nodos(2))%rp)
+	!		e2=hace_vertor3(mesh%nodos%(mesh%caras(n)%indice_nodos(2))%rp, mesh%nodos%(mesh%caras(n)%indice_nodos(3))%rp)
+	!		e3=hace_vertor3(mesh%nodos%(mesh%caras(n)%indice_nodos(3))%rp, mesh%nodos%(mesh%caras(n)%indice_nodos(1))%rp)
+!
+	!		normal = prod_cruz3(e1,e2)
+	!		area = norma_vector3(normal)
+!
+	!		e1 = e1/norma_vector3(e1)
+	!		e2 = e2/norma_vector3(e2)
+	!		e3 = e3/norma_vector3(e3) 
+!
+	!		normalu = normal/norma_vector3(normal)	
+!
+	!		mesh%caras(n)%normal(:)=normalu(:)
+!
+	!		mesh%caras(n)%ladoscomunes(1,:)=e1(:)
+	!		mesh%caras(n)%ladoscomunes(2,:)=e2(:)
+	!		mesh%caras(n)%ladoscomunes(3,:)=e3(:)
+!
+	!		mesh%caras(n)%area=area
+!
+	!	END DO
+!END SUBROUTINE hacer_caras
+SUBROUTINE hacer_lados(mesh) 
+	type(contenido_mesh), INTENT(INOUT) :: mesh
+	integer::n, m, l, nlados, clados 
+	type(lado), DIMENSION(:), allocatable:: temp_lados 
+	logical:: si_lado
+	integer, DIMENSION(2):: par
 
-	function norma_vector3(v)RESULT(res)
-		real(KIND=8),DIMENSION(3),INTENT(IN)::v
-		real(KIND=8)::res
-		res=SQRT(v(1)**2 +v(2)**2 +v(3)**2)
-	end function norma_vector3
+	nlados=SIZE(mesh%caras)*3
+	allocate(temp_lados(1:nlados))
 
-	function hace_vertor3(v1,v2)RESULT(v)
-		real(KIND=8),DIMENSION(3),INTENT(IN)::v1
-		real(KIND=8),DIMENSION(3),INTENT(IN)::v2
-		real(KIND=8),DIMENSION(3)::v
-		v(1)=v2(1)-v1(1)
-		v(2)=v2(2)-v1(2)
-		v(3)=v2(3)-v1(3)
-	end function hace_vertor3
+	do n=1,nlados
+		temp_lados(n)%indices_cara(:)=-1
+		temp_lados(n)%indices_nodo(:)=-1
+	end do
+	clados=0
 
-	SUBROUTINE hacer_caras(mesh)
+	do n=1,SIZE(mesh%caras)
+		do m=1,3
+			par = (/mesh%caras(n)%indice_nodos(m), mesh%caras(n)%indice_nodos(indexrot3(m+1))/)
+			si_lado=.FALSE.
+			do l=1,clados
+				if(comp_par(temp_lados(l)%indices_nodo, par)) then
+					si_lado=.TRUE.
+					temp_lados(l)%indices_cara(2)=n
+					mesh%caras(n)%indice_ladoscomunes(m)=clados
 
+					EXIT
+				end if
+			end do
 
-		type(contenido_mesh),INTENT(INOUT):: mesh
-		integer:: n
+			if(si_lado .eqv. .FALSE.) then
+				clados = clados + 1
 
-		real(KIND=8),DIMENSION(3)::e1, e2, e3, normal, normalu
-
-
-		DO n=1,mesh%ncaras
-
-			e1=hace_vertor3(mesh%nodos%(mesh%caras(n)%indice_nodos(1))%rp, mesh%nodos%(mesh%caras(n)%indice_nodos(2))%rp)
-			e2=hace_vertor3(mesh%nodos%(mesh%caras(n)%indice_nodos(2))%rp, mesh%nodos%(mesh%caras(n)%indice_nodos(3))%rp)
-			e3=hace_vertor3(mesh%nodos%(mesh%caras(n)%indice_nodos(3))%rp, mesh%nodos%(mesh%caras(n)%indice_nodos(1))%rp)
-
-			normal = prod_cruz3(e1,e2)
-			area = norma_vector3(normal)
-
-			e1 = e1/norma_vector3(e1)
-			e2 = e2/norma_vector3(e2)
-			e3 = e3/norma_vector3(e3) 
-
-			normalu = normal/norma_vector3(normal)	
-
-			mesh%caras(n)%normal(:)=normalu(:)
-
-			mesh%caras(n)%ladoscomunes(1,:)=e1(:)
-			mesh%caras(n)%ladoscomunes(2,:)=e2(:)
-			mesh%caras(n)%ladoscomunes(3,:)=e3(:)
-
-			mesh%caras(n)%area=area
-
-		END DO
-END SUBROUTINE hacer_caras
+				temp_lados(clados)%indices_nodo = par
+				temp_lados(clados)%indices_cara(1)=n
+				mesh%caras(clados)%indice_ladoscomunes(m)=clados 
+			end if
+		end do
+	end do
+	mesh%nlados=clados
+	allocate(mesh%lados(1:clados))
+	do n=1,clados
+		mesh%lados(n)%indices_nodo(:) = temp_lados(n)%indices_nodo(:)
+		mesh%lados(n)%indices_cara(:) = temp_lados(n)%indices_cara(:)
+	end do
+END SUBROUTINE hacer_lados
 
 
 !--------------------------------------------------------------------
-SUBROUTINE hacer_caras_solidos(mesh)
+SUBROUTINE hacer_caras(mesh)
     TYPE(contenido_mesh), INTENT(INOUT) :: mesh
     INTEGER :: n, m, l, ccara, ncaras, nbnds
-    TYPE(cara_solido), DIMENSION(:), ALLOCATABLE :: tmpcaras
+    TYPE(cara_solido), DIMENSION(:), ALLOCATABLE :: temp_caras
     LOGICAL:: si_cara
     INTEGER, DIMENSION(3):: triplet
 
     ! Allocate face reservoir with upper bound size.
     ncaras = SIZE(mesh%solidos)*4
-    ALLOCATE(tmpcaras(1:ncaras))
+    ALLOCATE(temp_caras(1:ncaras))
 
     ! Declare node indices with undefined values.
     DO n=1,ncaras
-       tmpcaras(n)%indices_nodo(:) = -1
-       tmpcaras(n)%indices_bnodo(:) = -1
-       tmpcaras(n)%indices_solido(:) = -1
+       temp_caras(n)%indices_nodo(:) = -1
+       temp_caras(n)%indices_bnodo(:) = -1
+       temp_caras(n)%indices_solido(:) = -1
     END DO
 
     ccara = 0
@@ -326,14 +412,14 @@ SUBROUTINE hacer_caras_solidos(mesh)
           ! Check if this face already exists in the list.
           si_cara = .FALSE.
           DO l=1,ccara
-             IF(cmp_triplets(tmpcaras(l)%indices_nodo, triplet)) THEN
+             IF(comp_trio(temp_caras(l)%indices_nodo, triplet)) THEN
                 si_cara = .TRUE.
 
                 ! Add this face index to edge's face list and the second one.
                 ! If an edge is shared by more than two faces, only two connections
                 ! are recorded.
-                tmpcaras(l)%indices_solido(2) = n
-                tmpcaras(l)%indices_bnodo(2) = mesh%solidos(n)%indice_nodos(indexrot4(m+3))
+                temp_caras(l)%indices_solido(2) = n
+                temp_caras(l)%indices_bnodo(2) = mesh%solidos(n)%indice_nodos(indexrot4(m+3))
 
                 ! Add this face index to tetrahedra's face list.
                 mesh%solidos(n)%indices_cara_solido(m) = l
@@ -345,11 +431,11 @@ SUBROUTINE hacer_caras_solidos(mesh)
           IF(si_cara.eqv..FALSE.)THEN
              ! Add new face.
              ccara = ccara + 1
-             tmpcaras(ccara)%indices_nodo = triplet
+             temp_caras(ccara)%indices_nodo = triplet
 
              ! Add this face index to edge's face list as the first one.
-             tmpcaras(ccara)%indices_solido(1) = n
-             tmpcaras(ccara)%indices_bnodo(1) = mesh%solidos(n)%indice_nodos(indexrot4(m+3))
+             temp_caras(ccara)%indices_solido(1) = n
+             temp_caras(ccara)%indices_bnodo(1) = mesh%solidos(n)%indice_nodos(indexrot4(m+3))
 
              ! Add this face index to tetrahedra's face list.
              mesh%solidos(n)%indices_cara_solido(m) = ccara
@@ -361,21 +447,21 @@ SUBROUTINE hacer_caras_solidos(mesh)
     mesh%ncaras_solido = ccara
     ALLOCATE(mesh%caras_solidos(1:ccara))
     DO n=1,ccara
-       mesh%caras_solidos(n)%indices_nodo(:) = tmpcaras(n)%indices_nodo(:)
-       mesh%caras_solidos(n)%indices_bnodo(:) = tmpcaras(n)%indices_bnodo(:)
-       mesh%caras_solidos(n)%indices_solido(:) = tmpcaras(n)%indices_solido(:)
+       mesh%caras_solidos(n)%indices_nodo(:) = temp_caras(n)%indices_nodo(:)
+       mesh%caras_solidos(n)%indices_bnodo(:) = temp_caras(n)%indices_bnodo(:)
+       mesh%caras_solidos(n)%indices_solido(:) = temp_caras(n)%indices_solido(:)
        mesh%caras_solidos(n)%indece_cara = -1
     END DO
 
     ! Deallocate temporary arrays.
-    DEALLOCATE(tmpcaras)
+    DEALLOCATE(temp_caras)
 
     ! Connect boundary solid faces to surface faces.
     DO n=1,mesh%ncaras_solido
        IF(mesh%caras_solidos(n)%indices_solido(1)==-1 .OR.&
             mesh%caras_solidos(n)%indices_solido(2)==-1) THEN
           DO m=1,mesh%ncaras
-             IF(cmp_triplets(mesh%caras_solidos(n)%indices_nodo, mesh%caras(m)%indice_nodos)) THEN
+             IF(comp_trio(mesh%caras_solidos(n)%indices_nodo, mesh%caras(m)%indice_nodos)) THEN
                 mesh%caras_solidos(n)%indece_cara = m
                 EXIT
              END IF
@@ -390,5 +476,5 @@ SUBROUTINE hacer_caras_solidos(mesh)
 
     WRITE(*,'(A,I0,:,A)') ' - Created ', ccara, ' unique solid faces'
 
-END SUBROUTINE hacer_caras_solidos
+END SUBROUTINE hacer_caras
 END MODULE mesh
