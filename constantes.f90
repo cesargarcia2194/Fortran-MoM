@@ -1,9 +1,9 @@
-MODULE constants
+MODULE constantes
   IMPLICIT NONE
   INTRINSIC SQRT
-  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(12)
+  INTEGER, PARAMETER :: dp = 8!SELECTED_REAL_KIND(12)
   REAL (KIND=dp), PARAMETER :: &
-       pi = 3.141592653589, &
+  	   pi = 3.141592653589, &
        eps0 = 8.8541878176D-12, &
        mu0 = 4*pi*1D-7, &
        c0 = 2.997924580003D8, &
@@ -12,4 +12,4 @@ MODULE constants
        degtorad = pi/180.0_dp
   INTEGER, PARAMETER :: prd_none = 1,&
        prd_2d = 2
-END MODULE constants
+END MODULE constantes

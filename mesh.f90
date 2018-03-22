@@ -6,23 +6,24 @@
 ! Contains also functions for splitting a mesh into submeshes and various mesh manipulation routines
 !
 MODULE mesh
-	
+	use constantes
+	use alineal
 	IMPLICIT NONE
 
 	
 	TYPE nodo
 		integer::numero_nodo
-		real(KIND=8), DIMENSION(3)::rp !posilbe vector de ubicacion de nodo
+		real(KIND=dp), DIMENSION(3)::rp !posilbe vector de ubicacion de nodo
 		 
 	END TYPE nodo
 	TYPE cara
     	integer:: id, indice_cara
     	integer, DIMENSION(3):: indice_nodos, indice_ladoscomunes
     	! los que agregue
-    	real(KIND=8),  DIMENSION(3) :: normal, baricentro ! normal: vector normal
+    	real(KIND=dp),  DIMENSION(3) :: normal, baricentro ! normal: vector normal
     	! ladoscomunes: vectores directores de los lados comunes
     	! normal_ladoscomunes: vecor normal a los lados comunes
-    	real(KIND=8), DIMENSION(3,3) :: vdirec, normal_lados
+    	real(KIND=dp), DIMENSION(3,3) :: vdirec, normal_lados
     	real :: area, pd !! no se que era pd, pero es dot(normal,p1)
  	END TYPE cara
 
@@ -46,7 +47,7 @@ MODULE mesh
     integer:: id
     integer, DIMENSION(4):: indices_nodo
     INTEGER, DIMENSION(4) :: indices_cara_solido
-    real(KIND=8)::volumen
+    real(KIND=dp)::volumen
   END TYPE solido
 
 
@@ -74,95 +75,7 @@ MODULE mesh
   END TYPE contenido_mesh
 
 Contains
-	!Si n>4 regresa 1, sino n
-  	FUNCTION indexrot4(n) RESULT(res)
-    	INTEGER, INTENT(IN) :: n
-    	INTEGER :: res
-	
-    	res = n
-	
-    	IF(res>4) THEN
-    	   res = res - ((res-1)/4)*4
-    	END IF
-END FUNCTION indexrot4
-	FUNCTION indexrot3(n) RESULT(res)
-    	INTEGER, INTENT(IN) :: n
-    	INTEGER :: res
-	
-    	res = n
-	
-    	IF(res>3) THEN
-    	   res = res - ((res-1)/3)*3
-    	END IF
-END FUNCTION indexrot3
-	!Si los valores triplet 1 estan en triplet 2 devuel TRUE (no importa el orden)
-	FUNCTION comp_trio(triplet1, triplet2) RESULT(res)
-	    INTEGER, DIMENSION(3), INTENT(IN) :: triplet1, triplet2
-	    LOGICAL :: res
-	    ! Revisar esta declaracion y como es la matriz de verdad
-	    INTEGER, PARAMETER, DIMENSION(3,6) :: indices = reshape((/1,2,3, 1,3,2, 2,1,3, 2,3,1, 3,1,2, 3,2,1/),(/3,6/))
-	    !1 1 2 2 3 3
-	    !2 3 1 3 1 2
-	    !3 2 3 1 2 1
-	    INTEGER :: i
-	
-	    res = .FALSE.
-	
-	    DO i=1,6
-	       IF(triplet1(1)==triplet2(indices(1,i)) .AND.&
-	            triplet1(2)==triplet2(indices(2,i)) .AND.&
-	            triplet1(3)==triplet2(indices(3,i))) THEN
-	          res = .TRUE.
-	          RETURN
-	       END IF
-	    END DO
-END FUNCTION comp_trio
 
-	FUNCTION comp_par(par1, par2)RESULT(res)
-
-		integer,DIMENSION(2), INTENT(IN)::par1, par2
-		logical :: res
-		res= .FALSE.
-		if( (par1(1)==par2(1) .AND. par1(2) == par2(2)) .OR.&
-			(par1(1)==par2(2) .AND. par1(2) == par2(1)))then
-			res= .TRUE.
-		end if
-END FUNCTION comp_par
-
-	function prod_cruz(v1,v2) RESULT(v1xv2)
-		real(KIND=8),DIMENSION(3),INTENT(IN)::v1
-		real(KIND=8),DIMENSION(3),INTENT(IN)::v2
-		real(KIND=8),DIMENSION(3)::v1xv2
-
-		v1xv2(1)=v1(2)*v2(3)-v2(2)*v1(3)
-		v1xv2(2)=v2(1)*v1(3)-v1(1)*v2(3)
-		v1xv2(3)=v1(1)*v2(2)-v2(1)-v1(2)
-	end function prod_cruz
-	function prod_escalar(v1,v2) RESULT(v1v2)
-		real(KIND=8),DIMENSION(3),INTENT(IN)::v1
-		real(KIND=8),DIMENSION(3),INTENT(IN)::v2
-		real::v1v2
-
-		v1v2 = SUM(v1*v2)
-	end function prod_escalar
-
-	function normav(v)RESULT(res)
-		real(KIND=8),DIMENSION(3),INTENT(IN)::v
-		real(KIND=8)::res
-		res=SQRT(v(1)**2 +v(2)**2 +v(3)**2)
-	end function normav
-
-	function hace_vertor3(v1,v2)RESULT(v)
-		real(KIND=8),DIMENSION(3),INTENT(IN)::v1
-		real(KIND=8),DIMENSION(3),INTENT(IN)::v2
-		real(KIND=8),DIMENSION(3)::v
-		v(1)=v2(1)-v1(1)
-		v(2)=v2(2)-v1(2)
-		v(3)=v2(3)-v1(3)
-	end function hace_vertor3
-
-
-!construyendo contenedor mesh
 	FUNCTION cargar_mesh(archivoMesh) RESULT(mesh)
 		character(LEN=*),INTENT(IN):: archivoMesh
 		character(LEN=256):: linea
@@ -174,7 +87,7 @@ END FUNCTION comp_par
 
         integer,DIMENSION(:,:),allocatable::tipos_elementos
 
-        real (KIND=8), DIMENSION(3) :: np
+        real (KIND=dp), DIMENSION(3) :: np
     	character (LEN=3) :: mshVersion
 
     	OPEN(fid,file=TRIM(archivoMesh), action='READ', IOSTAT=iovar)
@@ -451,7 +364,7 @@ END SUBROUTINE hacer_caras
 SUBROUTINE datos_base(mesh)
 	type(contenido_mesh), INTENT(INOUT):: mesh
 	integer :: n
-    REAL (KIND=8), DIMENSION(3) :: b, p1, p2, p3, p4, p21, p32, p13
+    REAL (KIND=dp), DIMENSION(3) :: b, p1, p2, p3, p4, p21, p32, p13
 
 
     do n=1,mesh%ncaras
@@ -475,8 +388,8 @@ SUBROUTINE datos_base(mesh)
         mesh%caras(n)%normal_lados(:,2) = prod_cruz(mesh%caras(n)%vdirec(:,2), mesh%caras(n)%normal)
         mesh%caras(n)%normal_lados(:,3) = prod_cruz(mesh%caras(n)%vdirec(:,3), mesh%caras(n)%normal)
 
-        mesh%caras(n)%area = 0.5*normav(prod_cruz(-p13,p32))  !0,5_dp convertir
-        mesh%caras(n)%baricentro = (p1 + p2 + p3)/3.0 !3.0_dp convertir
+        mesh%caras(n)%area = (0.5_dp)*normav(prod_cruz(-p13,p32))  !0,5_dp convertir
+        mesh%caras(n)%baricentro = (p1 + p2 + p3)/3.0_dp !convertir
     end do
 
     do n=1,mesh%nlados
@@ -488,7 +401,7 @@ SUBROUTINE datos_base(mesh)
        p2 = mesh%nodos(mesh%solidos(n)%indices_nodo(2))%rp
        p3 = mesh%nodos(mesh%solidos(n)%indices_nodo(3))%rp
        p4 = mesh%nodos(mesh%solidos(n)%indices_nodo(4))%rp
-       mesh%solidos(n)%volumen = ABS(prod_escalar((p1-p4),prod_cruz((p2-p4),(p3-p4))))/6.0 !6.0_dp
+       mesh%solidos(n)%volumen = ABS(prod_escalar((p1-p4),prod_cruz((p2-p4),(p3-p4))))/6.0_dp
     end do
 
     do n=1,mesh%ncaras_solido
@@ -496,7 +409,7 @@ SUBROUTINE datos_base(mesh)
        p2 = mesh%nodos(mesh%caras_solidos(n)%indices_nodo(2))%rp
        p3 = mesh%nodos(mesh%caras_solidos(n)%indices_nodo(3))%rp
 
-       mesh%caras_solidos(n)%area = 0.5*normav(prod_cruz(p3-p1,p3-p2)) !0,5_dp convertir
+       mesh%caras_solidos(n)%area = 0.5_dp*normav(prod_cruz(p3-p1,p3-p2))
     end do
 END SUBROUTINE datos_base
 END MODULE mesh
