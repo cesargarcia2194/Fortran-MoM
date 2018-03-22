@@ -19,10 +19,10 @@ MODULE mesh
     	integer:: id, indice_cara
     	integer, DIMENSION(3):: indice_nodos, indice_ladoscomunes
     	! los que agregue
-    	real,  DIMENSION(3) :: normal, baricentro ! normal: vector normal
+    	real(KIND=8),  DIMENSION(3) :: normal, baricentro ! normal: vector normal
     	! ladoscomunes: vectores directores de los lados comunes
     	! normal_ladoscomunes: vecor normal a los lados comunes
-    	real, DIMENSION(3,3) :: ladoscomunes, normal_ladoscomunes
+    	real(KIND=8), DIMENSION(3,3) :: vdirec, normal_lados
     	real :: area, pd !! no se que era pd, pero es dot(normal,p1)
  	END TYPE cara
 
@@ -42,11 +42,12 @@ MODULE mesh
     !INTEGER, DIMENSION(:,:), ALLOCATABLE :: child_indices !
   END TYPE lado
 
-  TYPE solidos
+  TYPE solido
     integer:: id
-    integer, DIMENSION(4):: indice_nodos
+    integer, DIMENSION(4):: indices_nodo
     INTEGER, DIMENSION(4) :: indices_cara_solido
-  END TYPE solidos
+    real(KIND=8)::volumen
+  END TYPE solido
 
 
 	TYPE cara_solido
@@ -61,7 +62,7 @@ MODULE mesh
 		type(cara), DIMENSION(:), allocatable ::caras
 		type(lineas), DIMENSION(:), allocatable ::lineas
     	type(lado), DIMENSION(:), ALLOCATABLE :: lados
-    	type(solidos), DIMENSION(:), allocatable ::solidos
+    	type(solido), DIMENSION(:), allocatable ::solidos
 		TYPE(cara_solido), DIMENSION(:), ALLOCATABLE :: caras_solidos
 		integer ::nnodos
 		integer ::ncaras
@@ -69,7 +70,7 @@ MODULE mesh
 		integer ::nlineas
 		integer ::nsolidos
 		integer:: ncaras_solido
-    integer :: nladolados_comunes
+    	
   END TYPE contenido_mesh
 
 Contains
@@ -128,7 +129,7 @@ END FUNCTION comp_trio
 		end if
 END FUNCTION comp_par
 
-	function prod_cruz3(v1,v2) RESULT(v1xv2)
+	function prod_cruz(v1,v2) RESULT(v1xv2)
 		real(KIND=8),DIMENSION(3),INTENT(IN)::v1
 		real(KIND=8),DIMENSION(3),INTENT(IN)::v2
 		real(KIND=8),DIMENSION(3)::v1xv2
@@ -136,13 +137,20 @@ END FUNCTION comp_par
 		v1xv2(1)=v1(2)*v2(3)-v2(2)*v1(3)
 		v1xv2(2)=v2(1)*v1(3)-v1(1)*v2(3)
 		v1xv2(3)=v1(1)*v2(2)-v2(1)-v1(2)
-	end function prod_cruz3
+	end function prod_cruz
+	function prod_escalar(v1,v2) RESULT(v1v2)
+		real(KIND=8),DIMENSION(3),INTENT(IN)::v1
+		real(KIND=8),DIMENSION(3),INTENT(IN)::v2
+		real::v1v2
 
-	function norma_vector3(v)RESULT(res)
+		v1v2 = SUM(v1*v2)
+	end function prod_escalar
+
+	function normav(v)RESULT(res)
 		real(KIND=8),DIMENSION(3),INTENT(IN)::v
 		real(KIND=8)::res
 		res=SQRT(v(1)**2 +v(2)**2 +v(3)**2)
-	end function norma_vector3
+	end function normav
 
 	function hace_vertor3(v1,v2)RESULT(v)
 		real(KIND=8),DIMENSION(3),INTENT(IN)::v1
@@ -273,7 +281,7 @@ END FUNCTION comp_par
           				nsolidos = nsolidos +1
           				READ(fid,*,IOSTAT=iovar) datos_elementos(1:(etiqueta+ 7))
           				mesh%solidos(nsolidos)%id=datos_elementos(4)
-          				mesh%solidos(nsolidos)%indice_nodos(1:4)=datos_elementos((etiqueta +4):(etiqueta+ 7))
+          				mesh%solidos(nsolidos)%indices_nodo(1:4)=datos_elementos((etiqueta +4):(etiqueta+ 7))
           			else
           				READ(fid,*,IOSTAT=iovar) datos_elementos(1)
           			end if
@@ -292,45 +300,6 @@ END FUNCTION comp_par
     	!CERRAR ARCHIVO
 END FUNCTION cargar_mesh
 
-
-
-	
-
-	!SUBROUTINE hacer_caras(mesh)
-!
-!
-	!	type(contenido_mesh),INTENT(INOUT):: mesh
-	!	integer:: n
-	!	real::area
-!
-	!	real(KIND=8),DIMENSION(3)::e1, e2, e3, normal, normalu
-!
-!
-	!	DO n=1,mesh%ncaras
-!
-	!		e1=hace_vertor3(mesh%nodos%(mesh%caras(n)%indice_nodos(1))%rp, mesh%nodos%(mesh%caras(n)%indice_nodos(2))%rp)
-	!		e2=hace_vertor3(mesh%nodos%(mesh%caras(n)%indice_nodos(2))%rp, mesh%nodos%(mesh%caras(n)%indice_nodos(3))%rp)
-	!		e3=hace_vertor3(mesh%nodos%(mesh%caras(n)%indice_nodos(3))%rp, mesh%nodos%(mesh%caras(n)%indice_nodos(1))%rp)
-!
-	!		normal = prod_cruz3(e1,e2)
-	!		area = norma_vector3(normal)
-!
-	!		e1 = e1/norma_vector3(e1)
-	!		e2 = e2/norma_vector3(e2)
-	!		e3 = e3/norma_vector3(e3) 
-!
-	!		normalu = normal/norma_vector3(normal)	
-!
-	!		mesh%caras(n)%normal(:)=normalu(:)
-!
-	!		mesh%caras(n)%ladoscomunes(1,:)=e1(:)
-	!		mesh%caras(n)%ladoscomunes(2,:)=e2(:)
-	!		mesh%caras(n)%ladoscomunes(3,:)=e3(:)
-!
-	!		mesh%caras(n)%area=area
-!
-	!	END DO
-!END SUBROUTINE hacer_caras
 SUBROUTINE hacer_lados(mesh) 
 	type(contenido_mesh), INTENT(INOUT) :: mesh
 	integer::n, m, l, nlados, clados 
@@ -366,7 +335,9 @@ SUBROUTINE hacer_lados(mesh)
 
 				temp_lados(clados)%indices_nodo = par
 				temp_lados(clados)%indices_cara(1)=n
-				mesh%caras(clados)%indice_ladoscomunes(m)=clados 
+				
+				mesh%caras(n)%indice_ladoscomunes(m)=clados
+				
 			end if
 		end do
 	end do
@@ -405,9 +376,9 @@ SUBROUTINE hacer_caras(mesh)
        DO m=1,4
 
           ! This determined the face node indexing.
-          triplet = (/mesh%solidos(n)%indice_nodos(m),&
-               mesh%solidos(n)%indice_nodos(indexrot4(m+1)),&
-               mesh%solidos(n)%indice_nodos(indexrot4(m+2))/)
+          triplet = (/mesh%solidos(n)%indices_nodo(m),&
+               mesh%solidos(n)%indices_nodo(indexrot4(m+1)),&
+               mesh%solidos(n)%indices_nodo(indexrot4(m+2))/)
 
           ! Check if this face already exists in the list.
           si_cara = .FALSE.
@@ -419,7 +390,7 @@ SUBROUTINE hacer_caras(mesh)
                 ! If an edge is shared by more than two faces, only two connections
                 ! are recorded.
                 temp_caras(l)%indices_solido(2) = n
-                temp_caras(l)%indices_bnodo(2) = mesh%solidos(n)%indice_nodos(indexrot4(m+3))
+                temp_caras(l)%indices_bnodo(2) = mesh%solidos(n)%indices_nodo(indexrot4(m+3))
 
                 ! Add this face index to tetrahedra's face list.
                 mesh%solidos(n)%indices_cara_solido(m) = l
@@ -435,7 +406,7 @@ SUBROUTINE hacer_caras(mesh)
 
              ! Add this face index to edge's face list as the first one.
              temp_caras(ccara)%indices_solido(1) = n
-             temp_caras(ccara)%indices_bnodo(1) = mesh%solidos(n)%indice_nodos(indexrot4(m+3))
+             temp_caras(ccara)%indices_bnodo(1) = mesh%solidos(n)%indices_nodo(indexrot4(m+3))
 
              ! Add this face index to tetrahedra's face list.
              mesh%solidos(n)%indices_cara_solido(m) = ccara
@@ -477,4 +448,55 @@ SUBROUTINE hacer_caras(mesh)
     WRITE(*,'(A,I0,:,A)') ' - Created ', ccara, ' unique solid faces'
 
 END SUBROUTINE hacer_caras
+SUBROUTINE datos_base(mesh)
+	type(contenido_mesh), INTENT(INOUT):: mesh
+	integer :: n
+    REAL (KIND=8), DIMENSION(3) :: b, p1, p2, p3, p4, p21, p32, p13
+
+
+    do n=1,mesh%ncaras
+    	p1=mesh%nodos(mesh%caras(n)%indice_nodos(1))%rp
+    	p2=mesh%nodos(mesh%caras(n)%indice_nodos(2))%rp
+    	p3=mesh%nodos(mesh%caras(n)%indice_nodos(3))%rp
+
+    	b = prod_cruz((p2-p1),(p3-p1))
+    	mesh%caras(n)%normal=b/normav(b)
+
+    	mesh%caras(n)%pd = prod_escalar(mesh%caras(n)%normal, p1)
+
+    	p21 = p2 - p1
+        p32 = p3 - p2
+        p13 = p1 - p3
+        mesh%caras(n)%vdirec(:,1) = p21/normav(p21)
+        mesh%caras(n)%vdirec(:,2) = p32/normav(p32)
+        mesh%caras(n)%vdirec(:,3) = p13/normav(p13)
+
+        mesh%caras(n)%normal_lados(:,1) = prod_cruz(mesh%caras(n)%vdirec(:,1), mesh%caras(n)%normal)
+        mesh%caras(n)%normal_lados(:,2) = prod_cruz(mesh%caras(n)%vdirec(:,2), mesh%caras(n)%normal)
+        mesh%caras(n)%normal_lados(:,3) = prod_cruz(mesh%caras(n)%vdirec(:,3), mesh%caras(n)%normal)
+
+        mesh%caras(n)%area = 0.5*normav(prod_cruz(-p13,p32))  !0,5_dp convertir
+        mesh%caras(n)%baricentro = (p1 + p2 + p3)/3.0 !3.0_dp convertir
+    end do
+
+    do n=1,mesh%nlados
+    	mesh%lados(n)%longitud = normav(mesh%nodos(mesh%lados(n)%indices_nodo(2))%rp -&
+    		mesh%nodos(mesh%lados(n)%indices_nodo(2))%rp)
+    end do
+    do n=1,mesh%nsolidos
+       p1 = mesh%nodos(mesh%solidos(n)%indices_nodo(1))%rp
+       p2 = mesh%nodos(mesh%solidos(n)%indices_nodo(2))%rp
+       p3 = mesh%nodos(mesh%solidos(n)%indices_nodo(3))%rp
+       p4 = mesh%nodos(mesh%solidos(n)%indices_nodo(4))%rp
+       mesh%solidos(n)%volumen = ABS(prod_escalar((p1-p4),prod_cruz((p2-p4),(p3-p4))))/6.0 !6.0_dp
+    end do
+
+    do n=1,mesh%ncaras_solido
+       p1 = mesh%nodos(mesh%caras_solidos(n)%indices_nodo(1))%rp
+       p2 = mesh%nodos(mesh%caras_solidos(n)%indices_nodo(2))%rp
+       p3 = mesh%nodos(mesh%caras_solidos(n)%indices_nodo(3))%rp
+
+       mesh%caras_solidos(n)%area = 0.5*normav(prod_cruz(p3-p1,p3-p2)) !0,5_dp convertir
+    end do
+END SUBROUTINE datos_base
 END MODULE mesh
