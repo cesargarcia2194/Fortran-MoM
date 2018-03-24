@@ -3,7 +3,7 @@ MODULE constantes
   INTRINSIC SQRT
   INTEGER, PARAMETER :: dp = 8!SELECTED_REAL_KIND(12)
   REAL (KIND=dp), PARAMETER :: &
-  	   pi = 3.141592653589, &
+       pi = 3.141592653589, &
        eps0 = 8.8541878176D-12, &
        mu0 = 4*pi*1D-7, &
        c0 = 2.997924580003D8, &
