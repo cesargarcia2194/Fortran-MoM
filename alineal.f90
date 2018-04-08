@@ -64,7 +64,7 @@ END FUNCTION comp_par
 
     v1xv2(1)=v1(2)*v2(3)-v2(2)*v1(3)
     v1xv2(2)=v2(1)*v1(3)-v1(1)*v2(3)
-    v1xv2(3)=v1(1)*v2(2)-v2(1)-v1(2)
+    v1xv2(3)=v1(1)*v2(2)-v2(1)*v1(2)
   end function prod_cruz
 
   !> Producto escalar de dos vectores real
@@ -83,7 +83,7 @@ END FUNCTION comp_par
   function normav(v)RESULT(res)
     real(KIND=dp),DIMENSION(3),INTENT(IN)::v
     real(KIND=dp)::res
-    res=SQRT(v(1)**2 +v(2)**2 +v(3)**2)
+    res=SQRT(v(1)*v(1) +v(2)*v(2)+v(3)*v(3))
   end function normav
 
   function hace_vertor3(v1,v2)RESULT(v)
