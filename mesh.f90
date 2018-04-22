@@ -65,6 +65,7 @@ MODULE mesh
     type(lado), DIMENSION(:), ALLOCATABLE :: lados
     type(solido), DIMENSION(:), allocatable ::solidos
     TYPE(cara_solido), DIMENSION(:), ALLOCATABLE :: caras_solidos
+    real(kind=dp),DIMENSION(:,:),ALLOCATABLE::centros
     integer ::nnodos
     integer ::ncaras
     integer ::nlados
@@ -373,11 +374,14 @@ SUBROUTINE calcular_datos_base(mesh)
   integer :: n
     REAL (KIND=dp), DIMENSION(3) :: b, p1, p2, p3, p4, p21, p32, p13
 
+    ALLOCATE(mesh%centros(3,1:mesh%nlados))
 
     do n=1,mesh%ncaras
       p1=mesh%nodos(mesh%caras(n)%indice_nodos(1))%rp
       p2=mesh%nodos(mesh%caras(n)%indice_nodos(2))%rp
       p3=mesh%nodos(mesh%caras(n)%indice_nodos(3))%rp
+
+
 
       b = prod_cruz((p2-p1),(p3-p1))
       mesh%caras(n)%normal=b/normav(b)
@@ -402,6 +406,8 @@ SUBROUTINE calcular_datos_base(mesh)
     do n=1,mesh%nlados
       mesh%lados(n)%longitud = normav(mesh%nodos(mesh%lados(n)%indices_nodo(2))%rp -&
         mesh%nodos(mesh%lados(n)%indices_nodo(2))%rp)
+      
+      mesh%centros(:,n)=(mesh%nodos(mesh%lados(n)%indices_nodo(1))%rp+mesh%nodos(mesh%lados(n)%indices_nodo(1))%rp)/2
     end do
     do n=1,mesh%nsolidos
        p1 = mesh%nodos(mesh%solidos(n)%indices_nodo(1))%rp
