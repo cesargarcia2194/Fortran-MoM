@@ -9,13 +9,23 @@ module param
 	integer, parameter :: il = 4
 	integer, parameter :: ild = 8
 	integer, parameter :: ilo = 4
+    REAL (KIND=dp), PARAMETER :: &
+       pi = 3.141592653589, &
+       eps0 = 8.8541878176D-12, &
+       mu0 = 4*pi*1D-7, &
+       c0 = 2.997924580003D8, &
+       eta0 = 3.767303134622D2
+  REAL (KIND=dp), PARAMETER :: radtodeg = 180.0_dp/pi,&
+       degtorad = pi/180.0_dp
+  INTEGER, PARAMETER :: prd_none = 1,&
+       prd_2d = 2
 
     real (kind = dp), parameter :: mu = 1.2566370614E-6_dp
     real (kind = dp), parameter ::  epsi = 8.8541878176E-12_dp
 	real (kind = dp), parameter :: vp = 1./sqrt(mu*epsi)
 
     complex (kind = dp), parameter :: jj = cmplx (0.,1.)
-    real (kind = dp), parameter :: pi = 3.141592653589793_dp
+    !real (kind = dp), parameter :: pi = 3.141592653589793_dp
     real (kind = dp) :: alphaCFIE = 1._dp!0.5
 
     real (kind = dp) :: lambda

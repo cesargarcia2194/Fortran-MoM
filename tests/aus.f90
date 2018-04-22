@@ -4,7 +4,7 @@
 ! Auxiliary routines for various purposes, such as string manipulation, file access and simple
 ! mathematical tools. This module is a good candidate for refactorization in the future.
 MODULE aus
-  USE constants
+  USE param
 
   IMPLICIT NONE
 

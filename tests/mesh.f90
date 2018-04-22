@@ -78,6 +78,7 @@ MODULE mesh
      TYPE(edge), DIMENSION(:), ALLOCATABLE :: edges
      TYPE(solid), DIMENSION(:), ALLOCATABLE :: solids
      TYPE(solid_face), DIMENSION(:), ALLOCATABLE :: solid_faces
+     REAL(KIND=dp), DIMENSION(:,:), ALLOCATABLE :: centers
      INTEGER :: nnodes, nfaces, nlines, nedges, nsolids, nsolid_faces
      REAL (KIND=dp) :: avelen
   END TYPE mesh_container
@@ -1119,10 +1120,13 @@ CONTAINS
     ! Trim edge arrays.
     mesh%nedges = cedge
     ALLOCATE(mesh%edges(1:cedge))
+    ALLOCATE(mesh%centers(3,1:mesh%nedges)) !! nuevo
     DO n=1,cedge
        mesh%edges(n)%node_indices(:) = tmpedges(n)%node_indices(:)
        mesh%edges(n)%bnode_indices(:) = tmpedges(n)%bnode_indices(:)
        mesh%edges(n)%face_indices(:) = tmpedges(n)%face_indices(:)
+       mesh%centers(:,n)=(mesh%nodes(mesh%edges(n)%node_indices(1))%p+mesh%nodes(mesh%edges(n)%node_indices(1))%p)/2
+
     END DO
 
     ! Deallocate temporary arrays.
