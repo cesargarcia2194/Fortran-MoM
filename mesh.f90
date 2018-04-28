@@ -79,6 +79,7 @@ MODULE mesh
      TYPE(solid), DIMENSION(:), ALLOCATABLE :: solids
      TYPE(solid_face), DIMENSION(:), ALLOCATABLE :: solid_faces
      INTEGER :: nnodes, nfaces, nlines, nedges, nsolids, nsolid_faces
+     REAL(KIND=dp),DIMENSION(:,:), ALLOCATABLE :: centers
      REAL (KIND=dp) :: avelen
   END TYPE mesh_container
 
@@ -1278,9 +1279,10 @@ END SUBROUTINE compute_mesh_essentials
     TYPE(mesh_container), INTENT(INOUT) :: mesh
     INTEGER :: n
     REAL (KIND=dp), DIMENSION(3) :: b, p1, p2, p3, p4, p21, p32, p13
-
+    REAL(KIND=dp),DIMENSION(:,:), ALLOCATABLE :: aux_centers
+    Allocate(aux_centers(3,1:mesh%nedges))
     WRITE(*,*) '- Computing basis function data'
-
+    !ALLOCATE(mesh%centers(3,1:mesh%nedges))
     DO n=1,mesh%nfaces
        p1 = mesh%nodes(mesh%faces(n)%node_indices(1))%p
        p2 = mesh%nodes(mesh%faces(n)%node_indices(2))%p
@@ -1290,6 +1292,7 @@ END SUBROUTINE compute_mesh_essentials
        mesh%faces(n)%n = b/normr(b)
 
        mesh%faces(n)%pd = dotr(mesh%faces(n)%n, p1)
+       
     
        p21 = p2 - p1
        p32 = p3 - p2
@@ -1314,6 +1317,10 @@ END SUBROUTINE compute_mesh_essentials
     DO n=1,mesh%nedges
        mesh%edges(n)%length = normr(mesh%nodes(mesh%edges(n)%node_indices(1))%p -&
             mesh%nodes(mesh%edges(n)%node_indices(2))%p)
+
+       aux_centers(:,n) = (mesh%nodes(mesh%edges(n)%node_indices(1))%p +&
+            mesh%nodes(mesh%edges(n)%node_indices(2))%p)/2
+
     END DO
 
     DO n=1,mesh%nsolids
@@ -1331,6 +1338,7 @@ END SUBROUTINE compute_mesh_essentials
 
        mesh%solid_faces(n)%area = 0.5_dp*normr(crossr(p3-p1,p3-p2))
     END DO
+    mesh%centers = aux_centers
 END SUBROUTINE compute_basis_data
 
   ! Result is positive if the given face is the positive faces of given edge.
