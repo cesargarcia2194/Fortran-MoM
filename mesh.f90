@@ -5,7 +5,7 @@
 ! Supports the msh-format exported by Gmsh and the neutral mesh format of Netgen.
 ! Contains also functions for splitting a mesh into submeshes and various mesh manipulation routines.
 MODULE mesh
-  USE auux
+  !USE auux
   USE linalg
 
   IMPLICIT NONE

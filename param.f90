@@ -1,7 +1,7 @@
 module param
     implicit none
 
-	integer, parameter :: dp = kind(0.d0)
+	integer, parameter :: dp = kind(0.d0)!ELECTED_REAL_KIND(12)
 	integer, parameter :: dpo = kind(0.d0)
 	integer, parameter :: dp_prec = 4!dp
 	integer, parameter :: dp_near = 4!dp

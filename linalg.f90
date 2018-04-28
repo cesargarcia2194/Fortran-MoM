@@ -5,7 +5,7 @@
 ! operations in R^3. Contains also some wrappers for
 ! LAPACK routines.
 MODULE linalg
-  USE constants
+  USE param
 
   IMPLICIT NONE
 
