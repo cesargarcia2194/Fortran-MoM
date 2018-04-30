@@ -3,7 +3,7 @@
 
 module mlfma
     use param
-    use method
+    use utils
     use mom
     use iterativo
     implicit none

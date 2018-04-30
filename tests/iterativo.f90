@@ -1,6 +1,6 @@
 module iterativo
     use param
-    use method
+    use utils
 
     implicit none
     private

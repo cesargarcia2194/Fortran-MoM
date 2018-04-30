@@ -1,4 +1,4 @@
-module method
+module utils
     use param
     implicit none
 
@@ -1438,4 +1438,4 @@ print*, 'Lambda min pue c usado para un mallado 95.44% correcto (criterio parche
    END SUBROUTINE  Swap
 
 
-end module method
+end module utils

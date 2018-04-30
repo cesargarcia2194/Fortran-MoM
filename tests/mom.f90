@@ -1,6 +1,6 @@
 module mom
     use param
-    use method
+    use utils
     implicit none
     private
     public :: inicializar_MoM, llenarZ_MoM, Zmn_MoM, MatxVec_MoM, setZ_MatxVec_MoM, getGLpointsWeights, &
