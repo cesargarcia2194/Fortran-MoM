@@ -1,16 +1,4 @@
-# Executables and modules
-*.exe
 *.mod
-*.smod
+*.exe
 *.out
-
-# Compiled Object files
-*.slo
-*.lo
 *.o
-*.obj
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll

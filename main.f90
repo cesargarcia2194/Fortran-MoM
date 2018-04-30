@@ -1,18 +1,26 @@
 program main
   use mesh
-  use method
+  !use method
   implicit none
-  type(contenido_mesh) :: cont_mesh
+  type(mesh_container) :: cont_mesh
   integer::n
-  cont_mesh = cargar_mesh('sphere.msh')
-  call hacer_lados(cont_mesh)
-  call  calcular_datos_base(cont_mesh)
-  do n=1, cont_mesh%nlados
-    print*, cont_mesh%centros(:,n)
-  end do
+  cont_mesh = load_mesh_gmsh('sphere.msh')
+  call build_mesh(cont_mesh)
+  call  compute_basis_data(cont_mesh)
+
+  print*, 'Nro de triangulos', cont_mesh%nfaces
+  print*, 'Nro de nodos', cont_mesh%nnodes
+  print*, 'Nro de lados', cont_mesh%nedges
+  print*, 'Nro de solidos', cont_mesh%nsolids
+  print*, 'Nro de caras de solidos', cont_mesh%nsolid_faces
   
-  call printconsole('Hola')
-  print *, cont_mesh%lados
+  
+  !do n=1, cont_mesh%nedges
+  !  print*, cont_mesh%centers(:,n)
+  !end do
+  
+  !call printconsole('Hola')
+
 
   call inicializar_MLFMA(cont_mesh%centro, cont_mesh%nlados, cont_mesh%lados(:)%indices_nodo, &
     ont_mesh%lados(:)%bnodes, cont_mesh%lados(:)%longitud, t_area, t_baric, t_baric_sub, p_coord, t_p, e_p, num_p,&
