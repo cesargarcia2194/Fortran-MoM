@@ -78,6 +78,7 @@ MODULE mesh
      TYPE(edge), DIMENSION(:), ALLOCATABLE :: edges
      TYPE(solid), DIMENSION(:), ALLOCATABLE :: solids
      TYPE(solid_face), DIMENSION(:), ALLOCATABLE :: solid_faces
+     REAL(KIND=dp), DIMENSION(:,:), ALLOCATABLE :: centers
      INTEGER :: nnodes, nfaces, nlines, nedges, nsolids, nsolid_faces
      REAL(KIND=dp),DIMENSION(:,:), ALLOCATABLE :: centers
      REAL (KIND=dp) :: avelen
