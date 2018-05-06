@@ -949,7 +949,7 @@ CONTAINS
           RETURN
        END IF
     END DO
-  END FUNCTION test_inclusion
+END FUNCTION test_inclusion
 
   FUNCTION test_inclusion2(array, element) RESULT(res)
     INTEGER, DIMENSION(:) :: array
@@ -965,7 +965,7 @@ CONTAINS
           RETURN
        END IF
     END DO
-  END FUNCTION test_inclusion2
+END FUNCTION test_inclusion2
 
   FUNCTION cmp_pairs(pair1, pair2) RESULT(res)
     INTEGER, DIMENSION(2), INTENT(IN) :: pair1, pair2
@@ -977,7 +977,7 @@ CONTAINS
          (pair1(1)==pair2(2) .AND. pair1(2)==pair2(1))) THEN
        res = .TRUE.
     END IF
-  END FUNCTION cmp_pairs
+END FUNCTION cmp_pairs
 
   FUNCTION cmp_triplets(triplet1, triplet2) RESULT(res)
     INTEGER, DIMENSION(3), INTENT(IN) :: triplet1, triplet2
@@ -996,7 +996,7 @@ CONTAINS
           RETURN
        END IF
     END DO
-  END FUNCTION cmp_triplets
+END FUNCTION cmp_triplets
 
   FUNCTION get_free_index(indices, dublet) RESULT(res)
     INTEGER, DIMENSION(3), INTENT(IN) :: indices
@@ -1012,7 +1012,7 @@ CONTAINS
     ELSE
        WRITE(*,*) 'Erroneous dublet comparison!'
     END IF
-  END FUNCTION get_free_index
+END FUNCTION get_free_index
 
   SUBROUTINE scale_mesh(mesh, scale)
     TYPE(mesh_container), INTENT(INOUT) :: mesh
@@ -1022,7 +1022,7 @@ CONTAINS
     DO n=1,mesh%nnodes
        mesh%nodes(n)%p =  mesh%nodes(n)%p*scale
     END DO
-  END SUBROUTINE scale_mesh
+END SUBROUTINE scale_mesh
 
   ! Reduces n periodically into set {1,2,3}.
   FUNCTION indexrot3(n) RESULT(index)
@@ -1034,7 +1034,7 @@ CONTAINS
     IF(index>3) THEN
        index = index - ((index-1)/3)*3
     END IF
-  END FUNCTION indexrot3
+END FUNCTION indexrot3
 
   ! Reduces n periodically into set {1,2,3,4}.
   FUNCTION indexrot4(n) RESULT(index)
@@ -1046,7 +1046,7 @@ CONTAINS
     IF(index>4) THEN
        index = index - ((index-1)/4)*4
     END IF
-  END FUNCTION indexrot4
+END FUNCTION indexrot4
 
   ! Creates unique edges from the given nodes and faces. These edges
   ! are directly associated with the expansion coefficients of surface
@@ -1147,7 +1147,7 @@ CONTAINS
 
     WRITE(*,*) 'Mesh data built successfully'
 
-  END SUBROUTINE build_mesh
+END SUBROUTINE build_mesh
 
   ! Called by build_mesh.
   SUBROUTINE build_solid_faces(mesh)
@@ -1246,7 +1246,7 @@ CONTAINS
 
     WRITE(*,'(A,I0,:,A)') ' - Created ', cface, ' unique solid faces'
 
-  END SUBROUTINE build_solid_faces
+END SUBROUTINE build_solid_faces
 
   SUBROUTINE compute_mesh_essentials(mesh)
     TYPE(mesh_container), INTENT(INOUT) :: mesh
@@ -1273,7 +1273,7 @@ CONTAINS
        p4 = mesh%nodes(mesh%solids(n)%node_indices(4))%p
        mesh%solids(n)%volume = ABS(dotr((p1-p4),crossr((p2-p4),(p3-p4))))/6.0_dp
     END DO
-  END SUBROUTINE compute_mesh_essentials
+END SUBROUTINE compute_mesh_essentials
 
   SUBROUTINE compute_basis_data(mesh)
     TYPE(mesh_container), INTENT(INOUT) :: mesh
@@ -1332,7 +1332,7 @@ CONTAINS
 
        mesh%solid_faces(n)%area = 0.5_dp*normr(crossr(p3-p1,p3-p2))
     END DO
-  END SUBROUTINE compute_basis_data
+END SUBROUTINE compute_basis_data
 
   ! Result is positive if the given face is the positive faces of given edge.
   ! Result is negative if the given face is the negative faces of given edge.
@@ -1348,7 +1348,7 @@ CONTAINS
     ELSE
        WRITE(*,*) 'Error evaluating mesh face sign (this could imply corrupted mesh connectivity)!'
     END IF
-  END FUNCTION get_face_sign
+END FUNCTION get_face_sign
 
   FUNCTION get_posit_bnode(faceind, edgeind, mesh) RESULT(res)
     INTEGER, INTENT(IN) :: faceind, edgeind
@@ -1356,7 +1356,7 @@ CONTAINS
     REAL (KIND=dp), DIMENSION(3) :: res
 
     res = mesh%nodes(mesh%edges(mesh%faces(faceind)%edge_indices(edgeind))%bnode_indices(1))%p
-  END FUNCTION get_posit_bnode
+END FUNCTION get_posit_bnode
 
   FUNCTION get_negat_bnode(faceind, edgeind, mesh) RESULT(res)
     INTEGER, INTENT(IN) :: faceind, edgeind
@@ -1364,7 +1364,7 @@ CONTAINS
     REAL (KIND=dp), DIMENSION(3) :: res
 
     res = mesh%nodes(mesh%edges(mesh%faces(faceind)%edge_indices(edgeind))%bnode_indices(2))%p
-  END FUNCTION get_negat_bnode
+END FUNCTION get_negat_bnode
 
   FUNCTION get_face_bnode(faceind, edgeind, mesh) RESULT(res)
     INTEGER, INTENT(IN) :: faceind, edgeind
@@ -1379,7 +1379,7 @@ CONTAINS
        WRITE(*,*) 'Indexing error in get_face_bnode!'
        STOP
     END IF
-  END FUNCTION get_face_bnode
+END FUNCTION get_face_bnode
 
 
   ! Result is positive if the given face is the positive faces of given edge.
@@ -1396,7 +1396,7 @@ CONTAINS
     ELSE
        WRITE(*,*) 'Error evaluating solid face sign (this could imply corrupted mesh connectivity)!'
     END IF
-  END FUNCTION get_solid_face_sign
+END FUNCTION get_solid_face_sign
 
   FUNCTION get_posit_solid_bnode(solidind, faceind, mesh) RESULT(res)
     INTEGER, INTENT(IN) :: solidind, faceind
@@ -1404,7 +1404,7 @@ CONTAINS
     REAL (KIND=dp), DIMENSION(3) :: res
 
     res = mesh%nodes(mesh%solid_faces(mesh%solids(solidind)%solid_face_indices(faceind))%bnode_indices(1))%p
-  END FUNCTION get_posit_solid_bnode
+END FUNCTION get_posit_solid_bnode
 
   FUNCTION get_negat_solid_bnode(solidind, faceind, mesh) RESULT(res)
     INTEGER, INTENT(IN) :: solidind, faceind
@@ -1412,7 +1412,7 @@ CONTAINS
     REAL (KIND=dp), DIMENSION(3) :: res
 
     res = mesh%nodes(mesh%solid_faces(mesh%solids(solidind)%solid_face_indices(faceind))%bnode_indices(2))%p
-  END FUNCTION get_negat_solid_bnode
+END FUNCTION get_negat_solid_bnode
 
   FUNCTION point_in_mesh(mesh, pt) RESULT(res)
     TYPE(mesh_container), INTENT(IN) :: mesh
@@ -1431,7 +1431,7 @@ CONTAINS
     END DO
 
     res = .TRUE.
-  END FUNCTION point_in_mesh
+END FUNCTION point_in_mesh
 
   SUBROUTINE export_mesh(filename, mesh)
     CHARACTER (LEN=*), INTENT(IN) :: filename
@@ -1513,7 +1513,7 @@ CONTAINS
     WRITE(fid,'(A)') '[end]'
 
     CLOSE(fid)
-  END SUBROUTINE export_mesh
+END SUBROUTINE export_mesh
 
   FUNCTION generate_sphere(nseg, nrow) RESULT(mesh)
     TYPE(mesh_container) :: mesh
@@ -1579,7 +1579,7 @@ CONTAINS
 
  !   mesh%nedges = 3/2*mesh%nfaces
  !   ALLOCATE(mesh%edges(mesh%nedges))
-  END FUNCTION generate_sphere
+END FUNCTION generate_sphere
 
   SUBROUTINE offset_mesh(mesh, offset)
     TYPE(mesh_container), INTENT(INOUT) :: mesh
@@ -1602,7 +1602,7 @@ CONTAINS
     DO n=1,mesh%nnodes
        mesh%nodes(n)%p = mesh%nodes(n)%p + nor(n,:)*offset
     END DO
-  END SUBROUTINE offset_mesh
+END SUBROUTINE offset_mesh
 
   SUBROUTINE save_msh(mesh, scale, filename)
     TYPE(mesh_container), INTENT(IN) :: mesh
@@ -1638,7 +1638,7 @@ CONTAINS
     END DO
 
     WRITE(fid,'(A12)') '$EndElements'
-  END SUBROUTINE save_msh
+END SUBROUTINE save_msh
 
   SUBROUTINE save_field_msh(filename, mesh, fn, ft, scale)
     CHARACTER (LEN=*), INTENT(IN) :: filename
@@ -1748,7 +1748,7 @@ CONTAINS
 
     CLOSE(fid)
 
-  END SUBROUTINE save_field_msh
+END SUBROUTINE save_field_msh
 
   SUBROUTINE save_vector_fields_msh(filename, mesh, e, h, scale)
     CHARACTER (LEN=*), INTENT(IN) :: filename
@@ -1898,7 +1898,7 @@ CONTAINS
 
     CLOSE(fid)
 
-  END SUBROUTINE save_vector_fields_msh
+END SUBROUTINE save_vector_fields_msh
 
   SUBROUTINE save_domain_vector_fields_msh(filename, mesh, pt, e, h, scale)
     CHARACTER (LEN=*), INTENT(IN) :: filename
@@ -1988,7 +1988,7 @@ CONTAINS
     END DO
 
     CLOSE(fid)
-  END SUBROUTINE save_domain_vector_fields_msh
+END SUBROUTINE save_domain_vector_fields_msh
 
   SUBROUTINE save_stream_fields_msh(filename, mesh, npts, pts, e, scale)
     CHARACTER (LEN=*), INTENT(IN) :: filename
@@ -2103,5 +2103,5 @@ CONTAINS
 
 
     CLOSE(fid)
-  END SUBROUTINE save_stream_fields_msh
+END SUBROUTINE save_stream_fields_msh
 END MODULE mesh
