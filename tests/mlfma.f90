@@ -197,7 +197,7 @@ integer (kind = il) :: k
         tol = tol/2.
         !Busqueda del nivel maximo
         !nivel_max = ceiling(2. + ( log10(ladomayor/getlambda())/log10(2.) ))
-        nivel_max = ceiling(1. + (    log10( ladomayor/(criterio_ladoW*getlambda()) ) / log10(2.)    ))
+        nivel_max = ceiling(1. + ( log10( ladomayor/(criterio_ladoW*getlambda()) ) / log10(2.) ))
 
 if (conf%force_ladomax) then
 
