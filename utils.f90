@@ -180,7 +180,23 @@ contains
         
     end subroutine
 
-
+    !---------------------------------------------------------------------------  
+    !> @author 
+    !> Routine Author Victor Sanchez and Cesar Garcia.
+    !
+    ! DESCRIPTION: 
+    !> Compara dos cadenas string. 
+    !> @brief
+    !> Flow method (rate of change of position) used by integrator.
+    !> Compute \f$ \frac{d\lambda}{dt} , \frac{d\phi}{dt},  \frac{dz}{dt} \f$
+    !
+    ! REVISION HISTORY:
+    ! TODO_dd_mmm_yyyy - TODO_describe_appropriate_changes - TODO_name
+    !
+    !> @param[in] str1      
+    !> @param[in] str2      
+    !> @return res
+    !---------------------------------------------------------------------------  
     function streq(str1,str2) result (res)
         !dummy
         character (len = *), intent(in) :: str1, str2
