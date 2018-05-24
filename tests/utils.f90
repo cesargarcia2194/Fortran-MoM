@@ -1437,5 +1437,57 @@ print*, 'Lambda min pue c usado para un mallado 95.44% correcto (criterio parche
       b    = Temp
    END SUBROUTINE  Swap
 
+   subroutine timestamp ( )
+
+        character ( len = 8 ) ampm
+        integer ( kind= il ) d
+        integer ( kind= il ) h
+        integer ( kind= il ) m
+        integer ( kind= il ) mm
+        character ( len = 9 ), parameter, dimension(12) :: month = (/ &
+            'January  ', 'February ', 'March    ', 'April    ', &
+            'May      ', 'June     ', 'July     ', 'August   ', &
+            'September', 'October  ', 'November ', 'December ' /)
+        integer ( kind= il ) n
+        integer ( kind= il ) s
+        integer ( kind= il ) values(8)
+        integer ( kind= il ) y
+
+        call date_and_time ( values = values )
+
+        y = values(1)
+        m = values(2)
+        d = values(3)
+        h = values(5)
+        n = values(6)
+        s = values(7)
+        mm = values(8)
+
+        if ( h < 12 ) then
+            ampm = 'AM'
+        else if ( h == 12 ) then
+            if ( n == 0 .and. s == 0 ) then
+                ampm = 'Noon'
+            else
+                ampm = 'PM'
+            end if
+        else
+            h = h - 12
+            if ( h < 12 ) then
+                ampm = 'PM'
+            else if ( h == 12 ) then
+                if ( n == 0 .and. s == 0 ) then
+                    ampm = 'Midnight'
+                else
+                    ampm = 'AM'
+                end if
+            end if
+        end if
+
+        write ( *, '(i2,1x,a,1x,i4,2x,i2,a1,i2.2,a1,i2.2,a1,i3.3,1x,a)' ) &
+            d, trim ( month(m) ), y, h, ':', n, ':', s, '.', mm, trim ( ampm )
+
+        return
+    end subroutine timestamp
 
 end module utils
